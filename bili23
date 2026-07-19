@@ -1,0 +1,13 @@
+#!/usr/bin/env sh
+# 使用仓库自己的虚拟环境执行无界面 CLI，避免误用系统 Python。
+set -eu
+
+PROJECT_DIR=$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)
+PYTHON_BIN="$PROJECT_DIR/.venv/bin/python"
+
+if [ ! -x "$PYTHON_BIN" ]; then
+    echo "未找到 $PYTHON_BIN；请先执行 uv venv .venv && uv pip install -r requirements.txt" >&2
+    exit 1
+fi
+
+PYTHONPATH="$PROJECT_DIR/src${PYTHONPATH:+:$PYTHONPATH}" exec "$PYTHON_BIN" "$PROJECT_DIR/src/bili23_cli.py" "$@"

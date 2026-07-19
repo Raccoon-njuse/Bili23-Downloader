@@ -52,6 +52,22 @@
 | 🔒 **账号安全登录**| 支持快捷安全的**扫码登录**与**短信验证登录**。 |
 | 📖 **完全开源免费**| 基于 **GPL-3.0** 协议发布，代码完全开源、无内购、无广告，拥抱社区共建。 |
 
+## CLI（供 Agent 调用）
+
+项目提供无界面 CLI，直接复用桌面端保存的扫码登录态、链接解析、下载任务和 FFmpeg 合并链路。CLI 不会输出或写入 Cookie；成功与失败结果均为单行 JSON，便于 Agent 解析。
+
+在源码目录中使用：
+
+```bash
+./bili23 auth status
+./bili23 favorites list --include-collected
+./bili23 favorites items 123456 --page 1
+./bili23 inspect 'https://www.bilibili.com/bangumi/play/ss38385' --episode 27 --with-media
+./bili23 download 'https://www.bilibili.com/bangumi/play/ss38385' --episode 27 --quality 720p --output ~/Downloads/bili23
+```
+
+下载命令默认等待文件下载和 FFmpeg 合并完成；先使用 `--dry-run` 可验证目标剧集及清晰度而不创建任务或文件。多集链接不会默认下载整季，必须显式传入 `--episode`、`--part`、`--ep-id`、`--cid`、`--match` 或 `--all`。可用 `doctor` 检查登录态、FFmpeg 和下载目录磁盘空间。
+
 ## 📥 下载地址
 
 当前提供两种下载方式，可按使用场景选择：

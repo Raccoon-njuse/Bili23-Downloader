@@ -240,13 +240,16 @@ class TaskManager:
                     str(error)
                 )
 
-                return
+                return []
 
             signal_bus.download.add_to_downloading_list.emit(task_info_list)
             signal_bus.download.auto_manage_concurrent_downloads.emit()
 
             if show_toast:
                 self._show_add_to_queue_toast()
+
+        # GUI 的异步调用不会使用返回值；CLI 需要据此决定是否进入下载事件循环。
+        return task_info_list
 
     def query(self, completed: bool = False) -> List[TaskInfo]:
         result = self.db_manager.query_tasks(completed)
