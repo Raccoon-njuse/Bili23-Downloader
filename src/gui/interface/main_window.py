@@ -3,12 +3,11 @@ from PySide6.QtGui import QIcon, QPixmap
 from PySide6.QtCore import Qt, QTimer
 
 from qfluentwidgets import (
-    MSFluentWindow, SystemThemeListener, NavigationItemPosition, FluentIcon, InfoBadge, qrouter
+    MSFluentWindow, SystemThemeListener, NavigationItemPosition, FluentIcon, qrouter
 )
 
-from util.common.enum import ToastNotificationCategory, WhenClose
-from util.common.signal_bus import signal_bus, config
-from util.common.icon import ExtendedFluentIcon
+from util.common.enum import ToastNotificationCategory
+from util.common.signal_bus import signal_bus
 from util.common.config import config
 
 import logging
@@ -20,8 +19,7 @@ class MainWindowBase:
         signal_bus.update.check.emit(False)
 
         if not config.get(config.tutorial_dialog_shown):
-            self.show_tutorial_dialog()
-
+            # 播放器直接进入可操作界面，不显示原下载器的文档引导。
             config.set(config.tutorial_dialog_shown, True)
 
         if not config.get(config.select_area_dialog_shown):
@@ -32,7 +30,7 @@ class MainWindowBase:
         if not config.get(config.is_login):
             self.show_login_teaching_tip()
 
-        QTimer.singleShot(0, self.check_download_path)
+        QTimer.singleShot(0, self.check_cache_path)
         QTimer.singleShot(0, self.check_ffmpeg)
 
         signal_bus.emit_pending_signals()
@@ -86,30 +84,13 @@ class MainWindowBase:
             contentMaxHeight = 200
         )
 
-    def show_tutorial_dialog(self):
-        # 询问用户是否首次使用，建议用户查看文档，充分利用程序功能
-        from qfluentwidgets import MessageBox
-
-        dialog = MessageBox(
-            title = self.tr("Welcome to Bili23 Downloader"),
-            content = self.tr("It is recommended to read the user guide and FAQs when using for the first time, to help you get started quickly and make full use of all features."),
-            parent = self
-        )
-        dialog.yesButton.setText(self.tr("View"))
-        dialog.cancelButton.setText(self.tr("Skip"))
-
-        if dialog.exec():
-            import webbrowser
-
-            webbrowser.open("https://bili23.scott-sloan.cn/doc/introduction.html")
-
     def show_login_teaching_tip(self: "MainWindow"):
         from qfluentwidgets import TeachingTip, TeachingTipTailPosition
 
         TeachingTip.create(
             target = self.avatar_widget,
             title = self.tr("Log in to your account"),
-            content = self.tr("Click the avatar to log in to your Bilibili account. \nDownload functionality will be limited if you're not logged in."),
+            content = self.tr("Click the avatar to log in to your Bilibili account. \nCaching and playback require an authorized account."),
             icon = FluentIcon.INFO,
             isClosable = True,
             duration = -1,
@@ -158,37 +139,22 @@ class MainWindowBase:
             self.initialized = True
             self.show()
 
-    def update_download_btn_badge_info(self: "MainWindow", count: int):
-        if self.download_info_badge.isHidden():
-            self.download_info_badge.show()
-
-        if count > 99:
-            self.download_info_badge.setText("99+")
-        elif count == 0:
-            self.download_info_badge.hide()
-            return
-        else:
-            self.download_info_badge.setText(str(count))
-
-        self.download_info_badge.adjustSize()
-
-        self.download_info_badge.move(self.download_btn.width() - 4, 111)
-
-    def check_download_path(self):
+    def check_cache_path(self):
+        """检查播放器私有缓存根目录，不读取普通下载目录配置。"""
         from util.common.io.directory import Directory
+        from util.player_cache.paths import cache_paths
 
-        download_path = config.get(config.download_path)
-
-        accessible = Directory.ensure_directory_accessible(download_path)
+        cache_paths.ensure_layout()
+        accessible = Directory.ensure_directory_accessible(str(cache_paths.root))
 
         if not accessible:
             signal_bus.toast.show_long_message.emit(
                 ToastNotificationCategory.ERROR,
-                self.tr("Download Directory Invalid"),
-                self.tr("The current download directory is inaccessible or lacks write permissions. Please reset it.") + f"\n\n{download_path}"
+                self.tr("Private cache unavailable"),
+                self.tr("The private media cache is inaccessible or lacks write permissions.")
             )
 
-            logger.error("下载目录不可访问或缺少写入权限：%s", download_path)
+            logger.error("播放器私有缓存不可访问或缺少写入权限")
 
     def check_ffmpeg(self):
         if config.no_ffmpeg_available:
@@ -197,43 +163,6 @@ class MainWindowBase:
                 self.tr("FFmpeg Not Found"),
                 self.tr("No FFmpeg executable found. Please ensure FFmpeg is installed and configured correctly.")
             )
-
-    def show_favorites_flyout_menu(self: "MainWindow"):
-        from qfluentwidgets import FlyoutAnimationType, FlyoutAnimationManager, MessageBox
-        from PySide6.QtCore import QPoint
-
-        if not config.get(config.is_login) or config.is_expired:
-            dialog = MessageBox(
-                title = self.tr("Login Required"),
-                content = self.tr("Please log in to your account first."),
-                parent = self
-            )
-            dialog.hideCancelButton()
-            dialog.exec()
-
-            self.reset_route_key()
-
-            return
-        
-        if not self.flyout_initialized:
-            self.flyout_initialized = True
-
-            # 首次显示时加载数据
-            self.flyout_widget.init_flyout()
-
-        self.flyout_widget.adjust_list_widget_width(self.size())
-        
-        manager = FlyoutAnimationManager.make(
-            aniType = FlyoutAnimationType.SLIDE_RIGHT,
-            flyout = self.flyout
-        )
-        target_pos: QPoint = manager.position(self.about_btn)
-        target_pos.setY(max(target_pos.y() + 20, 40))
-
-        self.flyout.exec(
-            target_pos,
-            FlyoutAnimationType.SLIDE_RIGHT
-        )
 
     def update_route_key(self, key: str):
         self.current_route_key = key
@@ -275,13 +204,13 @@ class MainWindow(MainWindowBase, MSFluentWindow):
 
         self.resize(950, 600)
         self.setMinimumSize(950, 600)
-        self.setWindowTitle("Bili23 Downloader")
+        self.setWindowTitle("Bili23 Player")
         self.setWindowIcon(QIcon(":/bili23/icon/app.svg"))
         self.setObjectName("MainWindow")
 
         self.current_route_key = "ParseInterface"
-        self.flyout_initialized = False
         self.initialized = False
+        self.player_dialog = None
 
         self.init_UI()
 
@@ -301,33 +230,12 @@ class MainWindow(MainWindowBase, MSFluentWindow):
         self.parse_interface = ParseInterface(self)
         self.parse_btn = self.addSubInterface(self.parse_interface, FluentIcon.SEARCH, self.tr("Parser"), position = NavigationItemPosition.TOP)
 
-        # 先创建导航栏按钮，后续再添加界面
-        self.download_btn = self.navigationInterface.addItem(
-            "DownloadInterface",
-            FluentIcon.DOWNLOAD,
-            self.tr("Downloads"),
+        # 缓存页只展示播放器自己的私有容器历史，不复用原下载队列。
+        self.cache_btn = self.navigationInterface.addItem(
+            "CacheInterface",
+            FluentIcon.VIDEO,
+            self.tr("Cache"),
             selectable = True,
-            position = NavigationItemPosition.TOP
-        )
-
-        self.download_info_badge = InfoBadge.error("99+", parent = self, target = self.download_btn)
-        self.download_info_badge.hide()
-
-        self.favorite_btn = self.navigationInterface.addItem(
-            "favorite",
-            ExtendedFluentIcon.FAVORITE,
-            self.tr("Favorites"),
-            onClick = self.show_favorites_flyout_menu,
-            selectable = True,
-            position = NavigationItemPosition.TOP
-        )
-
-        self.about_btn = self.navigationInterface.addItem(
-            "about",
-            FluentIcon.INFO,
-            self.tr("About"),
-            onClick = self.on_about_click,
-            selectable = False,
             position = NavigationItemPosition.TOP
         )
 
@@ -354,49 +262,36 @@ class MainWindow(MainWindowBase, MSFluentWindow):
             self.setStayOnTop(True)
 
     def init_deferred_ui(self):
-        from gui.component.widget.flyout import FavoriteFlyoutWidget
-        from gui.component.sys_tray import SystemTrayIcon
-        
-        from qfluentwidgets import Flyout
+        from util.player_cache.manager import cache_download_runtime, cache_playback_manager
 
-        from .download import DownloadInterface
+        from .cache import CacheInterface
         from .setting import SettingInterface
 
-        self.download_interface = DownloadInterface(self)
+        # 保留全局运行时对象的引用，确保隐藏下载队列在窗口存活期间持续调度。
+        self.cache_download_runtime = cache_download_runtime
+        self.cache_playback_manager = cache_playback_manager
+
+        self.cache_interface = CacheInterface(self)
         self.setting_interface = SettingInterface(self)
 
-        self._addSubInterface(self.download_interface)
+        self._addSubInterface(self.cache_interface)
         self._addSubInterface(self.setting_interface)
 
-        self.system_tray_icon = SystemTrayIcon(self)
-        self.system_tray_icon.show()
-
-        signal_bus.toast.sys_show.connect(self.system_tray_icon.show_message)
-
-        self.flyout_widget = FavoriteFlyoutWidget(self)
-
-        self.flyout = Flyout.make(
-            view = self.flyout_widget,
-            parent = self,
-            isDeleteOnClose = False
-        )
-
-        self.flyout_widget.closed.connect(self.flyout.fadeOut)
-        self.flyout.closed.connect(self.reset_route_key)
+        self.cache_playback_manager.playback_ready.connect(self.on_playback_ready)
+        self.cache_playback_manager.playback_stop_requested.connect(self.close_player)
 
     def connect_signals(self):
         signal_bus.toast.show.connect(self.show_toast_notification)
         signal_bus.toast.show_long_message.connect(self.show_toast_notification_long_message)
 
         signal_bus.login.update_avatar.connect(self.on_update_avatar)
-        signal_bus.download.update_downloading_count.connect(self.update_download_btn_badge_info)
         signal_bus.update.show_dialog.connect(self.show_update_dialog)
         signal_bus.interface.mica_effect_changed.connect(self.setMicaEffectEnabled)
 
         signal_bus.parse.parse_url.connect(self.on_reparse_task)
 
         self.parse_btn.clicked.connect(lambda: self.update_route_key("ParseInterface"))
-        self.download_btn.clicked.connect(lambda: self.update_route_key("DownloadInterface"))
+        self.cache_btn.clicked.connect(lambda: self.update_route_key("CacheInterface"))
         self.setting_btn.clicked.connect(lambda: self.update_route_key("SettingInterface"))
 
     def init_utils(self):
@@ -433,18 +328,22 @@ class MainWindow(MainWindowBase, MSFluentWindow):
         
         # 隐藏窗口，给用户反馈正在关闭的状态，避免长时间无响应的感觉
         self.hide()
+
+        self.close_player()
         
         AsyncTask.safe_quit()
 
-        if self.theme_listener.isRunning():
-            self.theme_listener.quit()
-            self.theme_listener.wait(1000)
+        # 初始化定时器尚未执行时窗口也可能被用户立即关闭，此时没有主题监听器。
+        theme_listener = getattr(self, "theme_listener", None)
+        if theme_listener is not None and theme_listener.isRunning():
+            theme_listener.quit()
+            theme_listener.wait(1000)
 
-            if self.theme_listener.isRunning():
-                self.theme_listener.terminate()
-                self.theme_listener.wait(1000)
-                
-            self.theme_listener.deleteLater()
+            if theme_listener.isRunning():
+                theme_listener.terminate()
+                theme_listener.wait(1000)
+
+            theme_listener.deleteLater()
 
         super().closeEvent(e)
 
@@ -455,37 +354,8 @@ class MainWindow(MainWindowBase, MSFluentWindow):
         return super().resizeEvent(e)
 
     def on_close(self):
-        match config.get(config.when_close_window):
-            case WhenClose.MINIMIZE:
-                self.hide()
-
-                return False
-            
-            case WhenClose.ALWAYS_ASK:
-                from ..dialog.main_window.exit import ExitDialog
-
-                dialog = ExitDialog(self)
-
-                if dialog.exec():
-                    if dialog.exit_checked:
-                        return True
-                    
-                    else:
-                        self.hide()
-
-                        return False
-
-                else:
-                    return False
-                
-            case WhenClose.EXIT:
-                return True
-
-    def on_about_click(self):
-        from ..dialog.main_window.about import AboutDialog
-
-        dialog = AboutDialog(self)
-        dialog.exec()
+        # 此分支没有托盘下载队列；关闭窗口即退出并释放临时播放明文。
+        return True
 
     def on_avatar_click(self):
         if not config.get(config.is_login) or config.is_expired:
@@ -497,17 +367,27 @@ class MainWindow(MainWindowBase, MSFluentWindow):
 
             if dialog.exec():
                 user_manager.get_user_info()
-        else:
-            # 已登录，点击头像显示用户信息
-            from ..component.profile import ProfileCard
-            from qfluentwidgets import Flyout, FlyoutAnimationType
 
-            Flyout.make(
-                view = ProfileCard(self),
-                target = self.avatar_widget,
-                parent = self,
-                aniType = FlyoutAnimationType.SLIDE_RIGHT
-            )
+    def on_playback_ready(self, entry, path: str):
+        """只在私有缓存还原完成后创建播放器，并接管临时文件的释放。"""
+        from ..dialog.player import PlayerDialog
+
+        self.close_player()
+        self.player_dialog = PlayerDialog(entry.title, path, entry.duration, self)
+        self.player_dialog.closed.connect(self.on_player_closed)
+        self.player_dialog.show()
+        self.player_dialog.raise_()
+        self.player_dialog.activateWindow()
+
+    def close_player(self):
+        """关闭内置播放器，触发临时明文文件的删除。"""
+        if self.player_dialog is not None:
+            self.player_dialog.close()
+
+    def on_player_closed(self, path: str):
+        if hasattr(self, "cache_playback_manager"):
+            self.cache_playback_manager.release_playback(path)
+        self.player_dialog = None
 
     def on_update_avatar(self, pixmap: QPixmap | bytes):
         if isinstance(pixmap, bytes):

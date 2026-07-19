@@ -10,7 +10,6 @@ from .tree_widget import DragTreeWidget, ColumnTreeWidget
 from .label import SectionLabel, ImageLabel, TipLabel
 from .avatar import NavigationLargeAvatarWidget
 from .progress_tip import ProgressTipWidget
-from .flyout import FavoriteFlyoutWidget
 from .tree_view import CheckListView
 from .segment import SegmentedWidget
 from .pivot import Pivot, PivotItem

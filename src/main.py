@@ -76,7 +76,8 @@ import os
 
 appdata_path = QStandardPaths.writableLocation(QStandardPaths.StandardLocation.AppDataLocation)
 
-log_path = Path(appdata_path) / "Bili23 Downloader" / "logs" / "app.log"
+# 播放器日志与原下载器分开，避免在播放器界面外混入旧下载记录。
+log_path = Path(appdata_path) / "Bili23 Player" / "logs" / "app.log"
 log_path.parent.mkdir(parents = True, exist_ok = True)
 
 class CompactLogFormatter(logging.Formatter):
@@ -148,10 +149,10 @@ from qfluentwidgets import FluentTranslator
 from util.common.config import config
 import res.resources_rc
 
-INSTANCE_LOCK_NAME = "instance.lock"
+INSTANCE_LOCK_NAME = "player.instance.lock"
 INSTANCE_LOCK_TIMEOUT_MS = 10_000
-INSTANCE_SERVER_NAME = "bili23_downloader_single_instance"
-APP_MUTEX_NAME = "B096F0C1-D105-4EF9-86E1-5E87DA884EA4"
+INSTANCE_SERVER_NAME = "bili23_player_single_instance"
+APP_MUTEX_NAME = "A7A072D8-14A5-46D1-B10D-B9696F738A6A"
 
 logger = logging.getLogger(__name__)
 
@@ -172,7 +173,7 @@ class Application(QApplication):
             self.app_mutex_handle = self._msw_create_mutex(APP_MUTEX_NAME)
 
     def init_single_instance(self):
-        lock_path = Path(appdata_path) / "Bili23 Downloader" / "locks" / INSTANCE_LOCK_NAME
+        lock_path = Path(appdata_path) / "Bili23 Player" / "locks" / INSTANCE_LOCK_NAME
 
         lock_path.parent.mkdir(parents = True, exist_ok = True)
 

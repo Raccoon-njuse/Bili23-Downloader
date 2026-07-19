@@ -16,7 +16,9 @@ logger = logging.getLogger(__name__)
 
 class TaskDatabase(Database):
     def __init__(self):
-        self.path = Path(appdata_path) / "Bili23 Downloader" / "task.db"
+        # 播放器只需要短暂追踪私有缓存任务，不能读取或污染原下载器的任务历史。
+        self.path = Path(appdata_path) / "Bili23 Player" / "task.db"
+        self.path.parent.mkdir(parents = True, exist_ok = True)
 
         self.check_and_create_table()
 

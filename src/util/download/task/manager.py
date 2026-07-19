@@ -1,4 +1,4 @@
-from ...common.enum import DownloadStatus, DownloadType, NumberingType, DuplicateDownloadResolution, ToastNotificationCategory
+from ...common.enum import DownloadStatus, DownloadType, NumberingType, ToastNotificationCategory
 from ...common.data import reversed_video_quality_map, reversed_audio_quality_map, video_codec_str_map
 from ...common._json import json_dumps, json_loads
 from ...common.timestamp import get_timestamp_ms
@@ -8,21 +8,19 @@ from ...common.io.file import safe_remove
 from ...common.config import config
 
 from ...parse.episode.tree import EpisodeData, Attribute
-from ...format.file_name import FileNameFormatter
 from ...thread.pool import GlobalThreadPoolTask
+from ...player_cache.paths import cache_paths
 
-from ..cover.manager import cover_manager
 from .reparse_worker import ReparseWorker
 from .db import TaskDatabase
 from .info import TaskInfo
 
-from threading import Event, Lock, Timer
+from threading import Lock, Timer
 from pathlib import Path
 from typing import List
 from uuid import uuid4
 from concurrent.futures import ThreadPoolExecutor
 import logging
-import hashlib
 import re
 
 logger = logging.getLogger(__name__)
@@ -68,7 +66,8 @@ class TaskManager:
 
         # BasicInfo
         task_info.Basic.task_id = str(uuid4())
-        task_info.Basic.cover_id = cover_manager.arrange_cover_id(episode_info.get("cover", ""))
+        # 播放器不展示下载任务或封面，避免初始化原下载器的缩略图数据库。
+        task_info.Basic.cover_id = ""
         task_info.Basic.show_title = episode_info.get("title", "")
         task_info.Basic.created_time = get_timestamp_ms()
         
@@ -85,11 +84,11 @@ class TaskManager:
         # EpisodeInfo
         task_info.Episode.from_dict(self.__update_episode_info(episode_info, number))
 
-        # FileNameInfo
-        # 下载目录在生成 TaskInfo 时就确定，后续即便修改了下载目录的设置，也不会影响已生成的 TaskInfo 中的下载目录，避免下载过程中下载目录发生变化导致的问题
-        task_info.File.download_path = config.get(config.download_path)
-
-        self.__update_file_name_info(task_info)
+        # 播放器分支不向用户选择的下载目录写入文件。所有原始媒体只落在私有工作区，
+        # 合并后会被封装成不透明缓存文件，并由缓存层删除工作目录。
+        task_info.File.download_path = str(cache_paths.work_root)
+        task_info.File.folder = task_info.Basic.task_id
+        task_info.File.name = "payload"
 
         return task_info
 
@@ -137,18 +136,6 @@ class TaskManager:
         self.__filter_illegal_characters(data)
 
         return data
-
-    def __update_file_name_info(self, task_info: TaskInfo):
-        formatter = FileNameFormatter()
-        formatter.set_variable_data(task_info)
-
-        if config.target_naming_rule_id is not None:
-            formatter.set_rule(formatter.get_rule_by_id(config.target_naming_rule_id))
-
-        path = Path(formatter.format())
-
-        task_info.File.name = str(path.name)
-        task_info.File.folder = str(path.parent)
 
     def __check_reparse_needed(self, episode_info: dict, show_toast: bool = False):
         if episode_info.get("attribute", 0) & Attribute.NEED_PARSE_BIT:
@@ -240,13 +227,16 @@ class TaskManager:
                     str(error)
                 )
 
-                return
+                return []
 
             signal_bus.download.add_to_downloading_list.emit(task_info_list)
             signal_bus.download.auto_manage_concurrent_downloads.emit()
 
             if show_toast:
                 self._show_add_to_queue_toast()
+
+        # 普通信号调用方忽略返回值；播放器缓存管理器据此追踪新建任务。
+        return task_info_list
 
     def query(self, completed: bool = False) -> List[TaskInfo]:
         result = self.db_manager.query_tasks(completed)
@@ -359,79 +349,10 @@ class TaskManager:
 
             task_info.Episode.video_codec = video_codec
 
-        self.__update_file_name_info(task_info)
+        # 缓存任务文件名必须保持不透明，不能再套用常规下载的标题/目录命名规则。
 
     def _check_duplicate(self, episode_info: dict):
-        hash_id = self._calc_hash_id(episode_info)
-
-        result = self.db_manager.check_duplicate(hash_id)
-
-        if result:
-            # 触发重复下载，根据用户设置执行相应的操作
-            match config.get(config.duplicate_download_resolution):
-                case DuplicateDownloadResolution.CONTINUE:
-                    # 返回 False 表示继续下载
-                    logger.info("已继续重复下载任务: %s", episode_info.get("title", ""))
-
-                    return False
-
-                case DuplicateDownloadResolution.SKIP:
-                    # 返回 True 表示跳过下载
-                    logger.info("已跳过重复下载任务: %s", episode_info.get("title", ""))
-
-                    signal_bus.download.show_skip_duplicate_download_toast.emit(episode_info.get("title", ""))
-                    
-                    return True
-                
-                case DuplicateDownloadResolution.ALWAYS_ASK:
-                    # 询问用户是否继续下载。后台线程等待主线程弹窗返回结果。
-                    result_info = {"skip": True, "not_ask_again": False}
-                    done_event = Event()
-
-                    signal_bus.download.show_duplicate_download_dialog.emit(episode_info, result_info, done_event)
-                    done_event.wait()
-
-                    logger.info("用户选择%s重复下载任务: %s", "跳过" if result_info["skip"] else "继续", episode_info.get("title", ""))
-
-                    return result_info["skip"]
-                    
-        return result
-
-    def _calc_hash_id(self, episode_info: dict):
-        # 根据 episode_info 计算 hash_id
-        attr = episode_info.get("attribute", 0)
-
-        if attr & Attribute.VIDEO_BIT:
-            # 投稿视频
-            metadata = {
-                "bvid": episode_info.get("bvid"),
-                "cid": episode_info.get("cid"),
-                "aid": episode_info.get("aid")
-            }
-
-        elif attr & Attribute.BANGUMI_BIT:
-            # 剧集类
-            metadata = {
-                "bvid": episode_info.get("bvid"),
-                "cid": episode_info.get("cid"),
-                "aid": episode_info.get("aid"),
-                "ep_id": episode_info.get("ep_id")
-            }
-
-        elif attr & Attribute.CHEESE_BIT:
-            # 课程类
-            metadata = {
-                "aid": episode_info.get("aid"),
-                "cid": episode_info.get("cid"),
-                "ep_id": episode_info.get("ep_id")
-            }
-
-        elif attr & Attribute.AUDIO_BIT:
-            # 音乐类
-            metadata = {
-                "sid": episode_info.get("sid")
-            }
-
-        return hashlib.md5(json_dumps(metadata).encode("utf-8")).hexdigest()
+        # 缓存层以独立 cache.sqlite3 判断命中；普通下载任务库不应阻止缓存重建。
+        return False
     
 task_manager = TaskManager()

@@ -7,6 +7,7 @@ from ..common.enum import ParserType
 from .episode.tree import EpisodeData
 
 from threading import Event
+from typing import Optional, Set
 import logging
 
 logger = logging.getLogger(__name__)
@@ -69,12 +70,14 @@ class ParseWorker(WorkerBase, QObject):
     error = Signal(str)
     finished = Signal()
 
-    def __init__(self, url: str, pn: int = 1):
+    def __init__(self, url: str, pn: int = 1, allowed_parser_types: Optional[Set[str]] = None):
         super().__init__()
 
         self.url = url
         self.pn = pn
         self.parser_type = ""
+        # 播放器可传入白名单，避免 b23 等短链重定向到收藏夹或历史页。
+        self.allowed_parser_types = allowed_parser_types
 
     @Slot()
     def run(self):
@@ -82,8 +85,10 @@ class ParseWorker(WorkerBase, QObject):
 
         try:
             self.parser_type = self.get_parser_type(self.url)
+            self.validate_parser_type()
 
             self.get_redirect_url()
+            self.validate_parser_type()
 
             parser = self.get_parser(self.parser_type)
 
@@ -100,6 +105,11 @@ class ParseWorker(WorkerBase, QObject):
             self.finished.emit()
 
             self.deleteLater()
+
+    def validate_parser_type(self):
+        """校验当前解析类型是否在调用方明确允许的范围内。"""
+        if self.allowed_parser_types is not None and self.parser_type not in self.allowed_parser_types:
+            raise ValueError("该链接不属于播放器支持的媒体类型。")
 
     def get_redirect_url(self):
         from .parser.festival import FestivalParser

@@ -289,7 +289,8 @@ class DefaultValue:
 
 class APPConfig(QConfig):
     # APP
-    app_name = "Bili23 Downloader"
+    # 播放器分支复用原配置文件中的登录态，但对外显示为独立产品名称。
+    app_name = "Bili23 Player"
     app_version = "2.11.0"
     app_comparable_version = "2.11.0"
     app_config_version = 2100
