@@ -2,6 +2,7 @@
 ### Added
 - 新增项目级 `bili23-cli` Agent Skill，规范个人授权内容的收藏夹查询、精确选集、下载与本地转写输入准备流程
 - 新增中英文 Agent CLI 文档与 `NOTICE`，说明本 fork 的 Agent 集成范围、上游归属和 GPLv3 约束
+- 新增 macOS/Linux 源码全局注册脚本，可将 `bili23` 和 Codex Skill 以可追踪软链接注册到用户目录
 
 ## 2.11.0 (2026-07-16)
 ### 新增

@@ -4,7 +4,7 @@
     </a>
 </p>
 
-<h1 align="center">Bili23-Downloader</h1>
+<h1 align="center">Bili23 CLI + Codex Skill</h1>
 
 <p align="center">
     <img src="https://img.shields.io/github/v/release/ScottSloan/Bili23-Downloader?style=flat-square" alt="Release"/>
@@ -16,11 +16,11 @@
 
 <div align="center">
     <h3>
-        <a href="https://bili23.scott-sloan.cn/">项目官网</a>
+        <a href="https://bili23.scott-sloan.cn/">上游官网</a>
         <span> • </span>
-        <a href="https://bili23.scott-sloan.cn/doc/intro.html">说明文档</a>
+        <a href="https://bili23.scott-sloan.cn/doc/intro.html">上游文档</a>
         <span> • </span>
-        <a href="#-下载地址">下载地址</a>
+        <a href="#bilibili-cli-与-codex-skill">CLI 安装</a>
         <span> • </span>
         <a href="README.md">中文</a>
         <span> • </span>
@@ -29,7 +29,8 @@
 </div>
 
 <div align="center">
-    <strong>开源、免费、跨平台的 B 站视频下载工具</strong><br>
+    <strong>基于 Bili23-Downloader 的 B 站视频下载 CLI 与 Codex Skill</strong><br>
+    <span>个人授权内容的本地媒体准备与后续转写工作流入口</span>
 </div><br>
 
 <p align="center"><img src="https://bili23.scott-sloan.cn/main_interface_cn.png" alt="程序截图" style="width: 80%;"></p>
@@ -52,29 +53,58 @@
 | 🔒 **账号安全登录**| 支持快捷安全的**扫码登录**与**短信验证登录**。 |
 | 📖 **完全开源免费**| 基于 **GPL-3.0** 协议发布，代码完全开源、无内购、无广告，拥抱社区共建。 |
 
-## Bilibili CLI 与 Agent Skill
+## Bilibili CLI 与 Codex Skill
 
-本 fork 新增了无界面 `bili23` CLI 与项目内 `.agents/skills/bili23-cli` Agent Skill。它们直接复用桌面端保存的登录态、链接解析、下载任务和 FFmpeg 合并链路，供 Agent 在本机准备后续音视频转写、字幕比对或视觉分析所需的媒体文件。
+本 fork 将无界面 `bili23` CLI 与 `.agents/skills/bili23-cli` 作为可从源码安装的通用 Agent 接口。CLI 复用桌面端保存的登录态、链接解析、下载任务和 FFmpeg 合并链路；Skill 约束 Agent 以个人授权、精确选集、可审计的方式为后续音视频转写、字幕比对或视觉分析准备本地媒体。
 
-它不是网络服务或 MCP 端点，不监听端口；Agent 在源码根目录通过 shell 调用 `./bili23` 即可。CLI 成功与失败结果均为单行 JSON，下载进度输出到 stderr。CLI 不输出或持久化 Cookie/token，但 `auth status`、`doctor` 的 JSON 可能包含 UID、昵称等账户摘要，Agent 不应将这些内容写入日志或对外报告。
+它不是网络服务或 MCP 端点，不监听端口。CLI 成功与失败结果均为单行 JSON，下载进度输出到 stderr。CLI 不输出或额外持久化 Cookie/token，但 `auth status`、`doctor` 的 JSON 可能包含 UID、昵称等账户摘要，Agent 不应将这些内容写入日志或对外报告。
 
-在源码目录中使用：
+### 从源码安装与全局注册（macOS/Linux）
+
+需要 Git、Python 3.9+ 和 [uv](https://docs.astral.sh/uv/)。先克隆本 fork 并创建它自己的运行环境：
 
 ```bash
-./bili23 auth status
-./bili23 favorites list --include-collected
-./bili23 favorites items 123456 --page 1
-./bili23 inspect 'https://www.bilibili.com/bangumi/play/ss38385' --episode 27 --with-media
-./bili23 download 'https://www.bilibili.com/bangumi/play/ss38385' --episode 27 --quality 720p --output ~/Downloads/bili23
+git clone https://github.com/Raccoon-njuse/Bili23-Downloader.git
+cd Bili23-Downloader
+uv sync
+./bili23 doctor
+```
+
+登录仍由桌面端 Bili23 Downloader 完成；CLI 不会接管扫码或收集凭据。接着将 CLI 与 Codex Skill 一起注册到当前用户目录：
+
+```bash
+./scripts/install-global.sh --all
+```
+
+该脚本仅创建可追踪的软链接，不复制源码：默认将命令链接到 `${BILI23_BIN_DIR:-$HOME/.local/bin}/bili23`，并将 Skill 链接到 `${CODEX_HOME:-$HOME/.codex}/skills/bili23-cli`。若 `~/.local/bin` 不在 `PATH`，请把它加入所用 shell 的启动配置，然后开启新 shell 或重启 Codex：
+
+```bash
+export PATH="$HOME/.local/bin:$PATH"
+command -v bili23
+bili23 --help
+```
+
+Codex 必须新建任务或重启后才会重新发现全局 Skill。其他 Agent 没有统一的全局 Skill 目录，应将 `.agents/skills/bili23-cli` 作为其用户级/项目级 Skill 来源，并确保其 shell 能找到 `bili23`。只在源码目录临时使用时，直接执行 `./bili23` 即可。
+
+更新源码后执行 `git pull --ff-only`、`uv sync`；由于安装的是软链接，CLI 与 Skill 会立即指向更新后的内容。需要移除当前 checkout 注册的两个链接时，执行 `./scripts/install-global.sh --uninstall`；脚本不会覆盖或删除指向其他来源的同名路径。
+
+### 常用命令
+
+```bash
+bili23 auth status
+bili23 favorites list --include-collected
+bili23 favorites items 123456 --page 1
+bili23 inspect 'https://www.bilibili.com/bangumi/play/ss38385' --episode 27 --with-media
+bili23 download 'https://www.bilibili.com/bangumi/play/ss38385' --episode 27 --quality 720p --output ~/Downloads/bili23
 ```
 
 下载命令默认等待文件下载和 FFmpeg 合并完成；先使用 `--dry-run` 可验证目标剧集及清晰度而不创建任务或文件。多集链接不得默认下载整季，需显式传入 `--episode`、`--part`、`--ep-id`、`--cid`、`--match`；`--all` 仅用于用户明确授权的批量任务。可用 `doctor` 检查登录态、FFmpeg 和下载目录磁盘空间。
 
 该 CLI/Skill 仅用于用户本人已获授权内容的个人、私有、非商业处理，不提供共享账号、媒体公开分发、批量抓取或绕过平台保护的能力。它只完成媒体获取与准备，不内置语音识别；下载成功后再将本地媒体交给独立的转写工作流。完整接入和操作边界见 [Agent CLI 文档](docs/agent-cli.md)，本 fork 的上游归属和许可说明见 [NOTICE](NOTICE)。
 
-## 📥 下载地址
+## 📥 上游桌面端下载
 
-当前提供两种下载方式，可按使用场景选择：
+以下上游发行包用于桌面端登录和 GUI 使用，**不包含本 fork 新增的 `bili23` CLI、全局注册脚本或 Codex Skill**。CLI 请按上文从本 fork 源码安装。
 
 - [**GitHub Releases**](https://github.com/ScottSloan/Bili23-Downloader/releases/latest) - 适合访问 GitHub 较稳定的用户，获取最新发布版本。
 - [**官网下载（国内用户推荐）**](https://bili23.scott-sloan.cn/doc/releases.html) - 适合国内用户，通常访问更快、更稳定。
