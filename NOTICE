@@ -1,0 +1,11 @@
+# Bili23-Downloader Fork Notice
+
+This repository is an independent fork of [ScottSloan/Bili23-Downloader](https://github.com/ScottSloan/Bili23-Downloader).
+
+The original project's source, attribution, copyright notices, and GPLv3 licensing terms are retained. The original desktop application and its download, parsing, login, and media-processing foundations are the work of the upstream project and its contributors.
+
+Fork-specific additions in this repository include the non-GUI `bili23` CLI and the project-local `.agents/skills/bili23-cli` documentation for Agent-driven, local media-preparation workflows.
+
+This fork is not affiliated with, maintained by, or endorsed by Scott Sloan, the upstream project, or Bilibili. When redistributing modified source, retain applicable notices and comply with the GPLv3 license in `LICENSE`.
+
+Media access and use are separate from the software license. This fork documents the CLI only for personal, private, non-commercial use of content that the account holder is authorized to access. It does not grant rights to media, bypass platform controls, or authorize public distribution.

@@ -52,6 +52,24 @@
 | 🔒 **Secure Auth**| Supports quick and secure **QR Code Login** and **SMS Verification Login**. |
 | 📖 **Open Source & Free**| Released under the **GPL-3.0** License, fully open-source, no in-app purchases, no ads, embracing community contribution. |
 
+## Bilibili CLI and Agent Skill
+
+This fork adds a headless `bili23` CLI and a project-local `.agents/skills/bili23-cli` Agent Skill. They reuse the desktop application's stored login state, link parsing, download task, and FFmpeg merging pipeline so an Agent can prepare local media for a later transcription, subtitle-comparison, or visual-analysis workflow.
+
+This is not a network service or MCP endpoint and does not listen on a port. An Agent invokes `./bili23` through a shell at the source root. Successful and failed commands emit one JSON object on stdout; download progress goes to stderr. The CLI does not emit or persist Cookies/tokens, but `auth status` and `doctor` JSON can include an account summary such as UID or display name, which Agents must not place in logs or external reports.
+
+```bash
+./bili23 auth status
+./bili23 favorites list --include-collected
+./bili23 favorites items 123456 --page 1
+./bili23 inspect 'https://www.bilibili.com/bangumi/play/ss38385' --episode 27 --with-media
+./bili23 download 'https://www.bilibili.com/bangumi/play/ss38385' --episode 27 --quality 720p --output ~/Downloads/bili23
+```
+
+Downloads wait for both transfer and FFmpeg merging. Start with `--dry-run` to validate the selected episode and quality without creating a task or file. Multi-episode links must use an explicit `--episode`, `--part`, `--ep-id`, `--cid`, or `--match`; use `--all` only for an explicitly authorized batch job. Run `doctor` to check login, FFmpeg, and free space.
+
+The CLI/Skill is only for personal, private, non-commercial processing of content the account holder is authorized to access. It does not provide account sharing, public media distribution, batch scraping, or protection bypassing. It prepares media only and does not perform ASR itself. See the full [Agent CLI guide](docs/agent-cli.en.md) and the fork attribution in [NOTICE](NOTICE).
+
 ## 📥 Download
 
 Two download methods are available. Choose the one that fits your situation best:

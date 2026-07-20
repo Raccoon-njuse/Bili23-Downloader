@@ -52,9 +52,11 @@
 | 🔒 **账号安全登录**| 支持快捷安全的**扫码登录**与**短信验证登录**。 |
 | 📖 **完全开源免费**| 基于 **GPL-3.0** 协议发布，代码完全开源、无内购、无广告，拥抱社区共建。 |
 
-## CLI（供 Agent 调用）
+## Bilibili CLI 与 Agent Skill
 
-项目提供无界面 CLI，直接复用桌面端保存的扫码登录态、链接解析、下载任务和 FFmpeg 合并链路。CLI 不会输出或写入 Cookie；成功与失败结果均为单行 JSON，便于 Agent 解析。
+本 fork 新增了无界面 `bili23` CLI 与项目内 `.agents/skills/bili23-cli` Agent Skill。它们直接复用桌面端保存的登录态、链接解析、下载任务和 FFmpeg 合并链路，供 Agent 在本机准备后续音视频转写、字幕比对或视觉分析所需的媒体文件。
+
+它不是网络服务或 MCP 端点，不监听端口；Agent 在源码根目录通过 shell 调用 `./bili23` 即可。CLI 成功与失败结果均为单行 JSON，下载进度输出到 stderr。CLI 不输出或持久化 Cookie/token，但 `auth status`、`doctor` 的 JSON 可能包含 UID、昵称等账户摘要，Agent 不应将这些内容写入日志或对外报告。
 
 在源码目录中使用：
 
@@ -66,7 +68,9 @@
 ./bili23 download 'https://www.bilibili.com/bangumi/play/ss38385' --episode 27 --quality 720p --output ~/Downloads/bili23
 ```
 
-下载命令默认等待文件下载和 FFmpeg 合并完成；先使用 `--dry-run` 可验证目标剧集及清晰度而不创建任务或文件。多集链接不会默认下载整季，必须显式传入 `--episode`、`--part`、`--ep-id`、`--cid`、`--match` 或 `--all`。可用 `doctor` 检查登录态、FFmpeg 和下载目录磁盘空间。
+下载命令默认等待文件下载和 FFmpeg 合并完成；先使用 `--dry-run` 可验证目标剧集及清晰度而不创建任务或文件。多集链接不得默认下载整季，需显式传入 `--episode`、`--part`、`--ep-id`、`--cid`、`--match`；`--all` 仅用于用户明确授权的批量任务。可用 `doctor` 检查登录态、FFmpeg 和下载目录磁盘空间。
+
+该 CLI/Skill 仅用于用户本人已获授权内容的个人、私有、非商业处理，不提供共享账号、媒体公开分发、批量抓取或绕过平台保护的能力。它只完成媒体获取与准备，不内置语音识别；下载成功后再将本地媒体交给独立的转写工作流。完整接入和操作边界见 [Agent CLI 文档](docs/agent-cli.md)，本 fork 的上游归属和许可说明见 [NOTICE](NOTICE)。
 
 ## 📥 下载地址
 

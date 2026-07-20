@@ -1,0 +1,4 @@
+interface:
+  display_name: "Bili23 Agent CLI"
+  short_description: "Agent 可调用的个人 B 站视频下载与转写准备工作流"
+  default_prompt: "Use $bili23-cli to download one personally authorized Bilibili video for a local transcription workflow."
