@@ -25,26 +25,27 @@ class GlobalInstallTest(unittest.TestCase):
             codex_home = temporary_root / "codex"
             environment = {
                 **os.environ,
-                "BILI23_BIN_DIR": str(bin_dir),
+                "MEDIA_AGENT_BIN_DIR": str(bin_dir),
                 "CODEX_HOME": str(codex_home),
+                "MEDIA_AGENT_APPDATA_DIR": str(temporary_root / "appdata"),
             }
 
             first_install = self._run("--all", environment)
             self.assertEqual(first_install.returncode, 0, first_install.stderr)
 
-            cli_link = bin_dir / "bili23"
-            skill_link = codex_home / "skills" / "bili23-cli"
+            cli_link = bin_dir / "media-agent"
+            skill_link = codex_home / "skills" / "media-agent-cli"
             self.assertTrue(cli_link.is_symlink())
             self.assertTrue(skill_link.is_symlink())
-            self.assertEqual(cli_link.resolve(), PROJECT_DIR / "bili23")
-            self.assertEqual(skill_link.resolve(), PROJECT_DIR / ".agents" / "skills" / "bili23-cli")
+            self.assertEqual(cli_link.resolve(), PROJECT_DIR / "media-agent")
+            self.assertEqual(skill_link.resolve(), PROJECT_DIR / ".agents" / "skills" / "media-agent-cli")
 
             global_command_environment = {
                 **environment,
                 "PATH": f"{bin_dir}{os.pathsep}{os.environ['PATH']}",
             }
             help_result = subprocess.run(
-                ["sh", "-c", "bili23 --help"],
+                ["sh", "-c", "media-agent --help"],
                 cwd = PROJECT_DIR,
                 env = global_command_environment,
                 text = True,
@@ -52,7 +53,7 @@ class GlobalInstallTest(unittest.TestCase):
                 check = False,
             )
             self.assertEqual(help_result.returncode, 0, help_result.stderr)
-            self.assertIn("usage: bili23", help_result.stdout)
+            self.assertIn("usage: media-agent", help_result.stdout)
 
             repeat_install = self._run("--all", environment)
             self.assertEqual(repeat_install.returncode, 0, repeat_install.stderr)

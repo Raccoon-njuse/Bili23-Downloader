@@ -142,7 +142,7 @@ class _ParseCollector(QObject):
 
 
 class Bili23CLIService:
-    """复用 Bili23 Downloader 现有 API/解析逻辑的无界面服务。"""
+    """复用派生项目解析逻辑的无界面服务。"""
 
     def auth_status(self, require_login: bool = False) -> dict[str, Any]:
         """刷新运行时用户资料，并只返回可公开给本地 Agent 的账户摘要。"""
@@ -174,7 +174,7 @@ class Bili23CLIService:
         }
 
         if require_login and not is_logged_in:
-            raise CLIServiceError("当前登录态无效，请先在 Bili23 Downloader 图形界面扫码登录。")
+            raise CLIServiceError("当前登录态无效，请先在 Media Agent CLI 的登录窗口完成扫码登录。")
 
         return result
 
@@ -407,7 +407,7 @@ class Bili23CLIService:
         from util.download.task.info import TaskInfo
 
         # 只读 URI 避免 TaskDatabase 构造器执行建表/WAL 初始化，从而保证查询没有写入副作用。
-        database_path = Path(appdata_path) / "Bili23 Downloader" / "task.db"
+        database_path = Path(appdata_path) / "Media Agent CLI" / "task.db"
         if not database_path.exists():
             return []
 
@@ -649,6 +649,6 @@ def task_to_public(task) -> dict[str, Any]:
 def cli_runtime_paths() -> dict[str, str]:
     """返回诊断所需的非敏感本地路径。"""
     return {
-        "appdata": str(Path(appdata_path) / "Bili23 Downloader"),
+        "appdata": str(Path(appdata_path) / "Media Agent CLI"),
         "download_path": str(config.get(config.download_path)),
     }

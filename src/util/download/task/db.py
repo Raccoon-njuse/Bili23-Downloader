@@ -16,7 +16,7 @@ logger = logging.getLogger(__name__)
 
 class TaskDatabase(Database):
     def __init__(self):
-        self.path = Path(appdata_path) / "Bili23 Downloader" / "task.db"
+        self.path = Path(appdata_path) / "Media Agent CLI" / "task.db"
 
         self.check_and_create_table()
 

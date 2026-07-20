@@ -91,8 +91,8 @@ class MainWindowBase:
         from qfluentwidgets import MessageBox
 
         dialog = MessageBox(
-            title = self.tr("Welcome to Bili23 Downloader"),
-            content = self.tr("It is recommended to read the user guide and FAQs when using for the first time, to help you get started quickly and make full use of all features."),
+            title = self.tr("Welcome to Media Agent CLI"),
+            content = self.tr("This login companion stores an account session locally for the CLI. Read the repository documentation before using it with an Agent."),
             parent = self
         )
         dialog.yesButton.setText(self.tr("View"))
@@ -101,7 +101,7 @@ class MainWindowBase:
         if dialog.exec():
             import webbrowser
 
-            webbrowser.open("https://bili23.scott-sloan.cn/doc/introduction.html")
+            webbrowser.open("https://github.com/Raccoon-njuse/media-agent-cli")
 
     def show_login_teaching_tip(self: "MainWindow"):
         from qfluentwidgets import TeachingTip, TeachingTipTailPosition
@@ -275,7 +275,7 @@ class MainWindow(MainWindowBase, MSFluentWindow):
 
         self.resize(950, 600)
         self.setMinimumSize(950, 600)
-        self.setWindowTitle("Bili23 Downloader")
+        self.setWindowTitle("Media Agent CLI")
         self.setWindowIcon(QIcon(":/bili23/icon/app.svg"))
         self.setObjectName("MainWindow")
 

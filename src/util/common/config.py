@@ -15,6 +15,7 @@ from ._json import json_loads
 
 from pathlib import Path
 import logging
+import os
 import sys
 
 logger = logging.getLogger(__name__)
@@ -289,10 +290,10 @@ class DefaultValue:
 
 class APPConfig(QConfig):
     # APP
-    app_name = "Bili23 Downloader"
-    app_version = "2.11.0"
-    app_comparable_version = "2.11.0"
-    app_config_version = 2100
+    app_name = "Media Agent CLI"
+    app_version = "0.1.0"
+    app_comparable_version = "0.1.0"
+    app_config_version = 100
     config_version = ConfigItem("Application", "config_version", app_config_version)
 
     # Interface
@@ -476,8 +477,11 @@ def patch_config(config_version: int):
 config = APPConfig()
 config.themeMode.value = Theme.AUTO
 
-appdata_path = QStandardPaths.writableLocation(QStandardPaths.StandardLocation.AppDataLocation)
-config_path = Path(appdata_path) / "Bili23 Downloader" / "config.json"
+# 允许本地 Agent、测试和隔离运行环境显式指定状态根目录；未设置时遵循操作系统标准位置。
+appdata_path = os.environ.get("MEDIA_AGENT_APPDATA_DIR") or QStandardPaths.writableLocation(
+    QStandardPaths.StandardLocation.AppDataLocation
+)
+config_path = Path(appdata_path) / "Media Agent CLI" / "config.json"
 
 if not config_path.exists():
     logger.warning("配置文件不存在，将创建新配置文件")

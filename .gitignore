@@ -5,6 +5,7 @@ __pycache__/
 
 # 下载目录
 /Downloads
+/.runtime
 
 # commitizen
 cz.json

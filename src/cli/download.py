@@ -238,7 +238,7 @@ def run_download(episodes: list[dict], options: DownloadOptions, progress_callba
     from util.download.downloader.manager import downloader_manager
     from util.download.task.manager import task_manager
 
-    app = QCoreApplication.instance() or QCoreApplication(["bili23"])
+    app = QCoreApplication.instance() or QCoreApplication(["media-agent"])
     coordinator = CLIDownloadCoordinator(app, progress_callback)
 
     try:

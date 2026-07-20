@@ -68,7 +68,7 @@ class EditRuleDialog(DialogBase):
 
         self.guide_btn = HyperlinkButton(url = "", text = self.tr("Instructions"), parent = self)
         self.help_btn = HyperlinkButton(
-            url = "https://bili23.scott-sloan.cn/doc/naming-rule.html",
+            url = "https://github.com/Raccoon-njuse/media-agent-cli#media-agent-cli",
             text = self.tr("Open help page"),
             parent = self
         )

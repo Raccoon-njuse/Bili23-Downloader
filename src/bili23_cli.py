@@ -1,4 +1,4 @@
-"""Bili23 Downloader 的 Agent 友好命令行入口。"""
+"""Media Agent CLI 的 Agent 友好命令行入口。"""
 
 from __future__ import annotations
 
@@ -32,8 +32,8 @@ class CLIArgumentParser(argparse.ArgumentParser):
 def build_parser() -> argparse.ArgumentParser:
     """声明稳定的命令契约；所有成功结果均输出一行 JSON。"""
     parser = CLIArgumentParser(
-        prog = "bili23",
-        description = "基于本机 Bili23 Downloader 登录态的无界面 CLI",
+        prog = "media-agent",
+        description = "基于本机 Media Agent CLI 登录态的无界面命令行",
     )
     subparsers = parser.add_subparsers(dest = "command", required = True)
 

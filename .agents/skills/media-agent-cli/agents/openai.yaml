@@ -1,0 +1,4 @@
+interface:
+  display_name: "Media Agent CLI"
+  short_description: "个人授权媒体下载与本地转写准备工作流"
+  default_prompt: "Use $media-agent-cli to prepare one personally authorized local media file for a transcription workflow."

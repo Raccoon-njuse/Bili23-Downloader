@@ -87,7 +87,7 @@ class LogViewerDialog(FluentWidget):
         self.refresh_btn.clicked.connect(self.refresh_logs)
 
     def init_data(self):
-        self.log_path = Path(appdata_path) / "Bili23 Downloader" / "logs" / "app.log"
+        self.log_path = Path(appdata_path) / "Media Agent CLI" / "logs" / "app.log"
 
         log_records = self.parse_log_file(self.log_path)
 

@@ -7,13 +7,13 @@ usage() {
 Usage: ./scripts/install-global.sh [--all|--cli|--skill|--uninstall]
 
 Registers source-tree symlinks for macOS and Linux:
-  --all        Register both the bili23 command and Codex Skill (default).
-  --cli        Register only the bili23 command.
+  --all        Register both the media-agent command and Codex Skill (default).
+  --cli        Register only the media-agent command.
   --skill      Register only the Codex Skill.
   --uninstall  Remove links created for this source checkout.
 
 Environment overrides:
-  BILI23_BIN_DIR    Command directory, default: $HOME/.local/bin
+  MEDIA_AGENT_BIN_DIR  Command directory, default: $HOME/.local/bin
   CODEX_HOME        Codex home, default: $HOME/.codex
   CODEX_SKILLS_DIR  Skill directory, default: $CODEX_HOME/skills
 EOF
@@ -58,13 +58,13 @@ while [ -L "$SOURCE_PATH" ]; do
 done
 
 PROJECT_DIR=$(CDPATH= cd -P "$(dirname "$SOURCE_PATH")/.." && pwd)
-CLI_SOURCE="$PROJECT_DIR/bili23"
-SKILL_SOURCE="$PROJECT_DIR/.agents/skills/bili23-cli"
-BIN_DIR=${BILI23_BIN_DIR:-"$HOME/.local/bin"}
+CLI_SOURCE="$PROJECT_DIR/media-agent"
+SKILL_SOURCE="$PROJECT_DIR/.agents/skills/media-agent-cli"
+BIN_DIR=${MEDIA_AGENT_BIN_DIR:-"$HOME/.local/bin"}
 CODEX_ROOT=${CODEX_HOME:-"$HOME/.codex"}
 SKILLS_DIR=${CODEX_SKILLS_DIR:-"$CODEX_ROOT/skills"}
-CLI_LINK="$BIN_DIR/bili23"
-SKILL_LINK="$SKILLS_DIR/bili23-cli"
+CLI_LINK="$BIN_DIR/media-agent"
+SKILL_LINK="$SKILLS_DIR/media-agent-cli"
 
 link_source() {
     source_path=$1

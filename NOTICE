@@ -1,11 +1,23 @@
-# Bili23-Downloader Fork Notice
+# Media Agent CLI Notices
 
-This repository is an independent fork of [ScottSloan/Bili23-Downloader](https://github.com/ScottSloan/Bili23-Downloader).
+## Upstream provenance
 
-The original project's source, attribution, copyright notices, and GPLv3 licensing terms are retained. The original desktop application and its download, parsing, login, and media-processing foundations are the work of the upstream project and its contributors.
+Media Agent CLI is a modified derivative of [ScottSloan/Bili23-Downloader](https://github.com/ScottSloan/Bili23-Downloader). The complete Git history is retained in this repository. The original project supplied the desktop login, parsing, download, and media-processing foundation used by this derivative.
 
-Fork-specific additions in this repository include the non-GUI `bili23` CLI, the source-global registration script at `scripts/install-global.sh`, and the project-local `.agents/skills/bili23-cli` documentation for Agent-driven, local media-preparation workflows.
+## Copyright and license
 
-This fork is not affiliated with, maintained by, or endorsed by Scott Sloan, the upstream project, or Bilibili. When redistributing modified source, retain applicable notices and comply with the GPLv3 license in `LICENSE`.
+Copyright notices in upstream source files remain in place. The original work is credited to Scott Sloan and its contributors. Product-specific modifications are Copyright (c) 2026 Raccoon-njuse.
 
-Media access and use are separate from the software license. This fork documents the CLI only for personal, private, non-commercial use of content that the account holder is authorized to access. It does not grant rights to media, bypass platform controls, or authorize public distribution.
+The complete corresponding source is distributed under the GNU General Public License version 3.0. See [LICENSE](LICENSE). Distributors of binaries or modified versions must preserve applicable notices, provide the corresponding source required by GPLv3, and prominently state their modifications.
+
+## Dependency notices
+
+Runtime dependencies are declared in [pyproject.toml](pyproject.toml) and remain separate works under their respective licenses. Binary distributors are responsible for retaining any dependency notices and satisfying the license terms that apply to the bundled dependency versions.
+
+## Product identity and trademarks
+
+"Media Agent CLI" is the product identity of this derivative. This repository does not claim ownership of, affiliation with, or endorsement by Scott Sloan, the upstream project, or Bilibili. No trademark license is granted by this notice.
+
+## Media-use boundary
+
+GPLv3 governs the software source code. It does not grant rights to third-party media. Use the software only with content the account holder is authorized to access and in compliance with applicable law and platform terms. This statement is not an additional restriction on GPLv3 rights to the code.

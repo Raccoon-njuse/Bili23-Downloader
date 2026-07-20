@@ -26,15 +26,16 @@ class AboutDialog(DialogBase):
         self.app_version_lab = BodyLabel(self.tr("Version {app_version}").format(app_version = app_version), self)
         self.qt_version_lab = BodyLabel(self.tr("Powered by Qt {qt_version} and QFluentWidgets {qfluentwidgets_version}").format(qt_version = qVersion(), qfluentwidgets_version = __version__), self)
         self.license_lab = BodyLabel(self.tr("This software is free and open-source, licensed under the GNU General Public License v3 (GPLv3)."))
-        self.copyright_lab = BodyLabel(self.tr("Copyright © 2022-{year} Scott Sloan. All Rights Reserved.").format(year = year))
+        self.copyright_lab = BodyLabel(self.tr("Copyright © 2022-{year} Scott Sloan and contributors.").format(year = year))
+        self.modification_lab = BodyLabel(self.tr("Modified work © 2026 Raccoon-njuse. See NOTICE and UPSTREAM.md."))
 
-        self.sponsor_lab = BodyLabel(self.tr("If this project saved you time or solved your problem, consider buying the author a coffee! Don't forget to star the repository on GitHub to support open-source development."))
-        self.sponsor_lab.setWordWrap(True)
+        self.provenance_lab = BodyLabel(self.tr("A GPL-licensed derivative for local, personally authorized media workflows."))
+        self.provenance_lab.setWordWrap(True)
 
         self.terms_btn = TransparentPushButton(FluentIcon.DOCUMENT, self.tr("Terms of Use"), self)
-        self.documentation_btn = TransparentPushButton(FluentIcon.HELP, self.tr("Documentation"), self)
-        self.github_btn = TransparentPushButton(FluentIcon.GITHUB, self.tr("Github"), self)
-        self.sponsor_btn = TransparentPushButton(FluentIcon.HEART, self.tr("Sponsor"), self)
+        self.documentation_btn = TransparentPushButton(FluentIcon.HELP, self.tr("Repository"), self)
+        self.github_btn = TransparentPushButton(FluentIcon.GITHUB, self.tr("Source"), self)
+        self.sponsor_btn = TransparentPushButton(FluentIcon.INFO, self.tr("Upstream"), self)
 
         content_layout = QVBoxLayout()
         content_layout.setContentsMargins(0, 0, 0, 0)
@@ -45,8 +46,9 @@ class AboutDialog(DialogBase):
         content_layout.addWidget(self.license_lab)
         content_layout.addSpacing(10)
         content_layout.addWidget(self.copyright_lab)
-        content_layout.addSpacing(30)
-        content_layout.addWidget(self.sponsor_lab)
+        content_layout.addWidget(self.modification_lab)
+        content_layout.addSpacing(20)
+        content_layout.addWidget(self.provenance_lab)
 
         button_layout = QHBoxLayout()
         button_layout.addStretch()
@@ -81,10 +83,10 @@ class AboutDialog(DialogBase):
         dialog.exec()
 
     def on_ducumation(self):
-        webbrowser.open("https://bili23.scott-sloan.cn/doc/introduction.html")
+        webbrowser.open("https://github.com/Raccoon-njuse/media-agent-cli")
 
     def on_github(self):
-        webbrowser.open("https://github.com/ScottSloan/Bili23-Downloader")
+        webbrowser.open("https://github.com/Raccoon-njuse/media-agent-cli")
 
     def on_sponsor(self):
-        webbrowser.open("https://bili23.scott-sloan.cn/doc/about.html")
+        webbrowser.open("https://github.com/ScottSloan/Bili23-Downloader")

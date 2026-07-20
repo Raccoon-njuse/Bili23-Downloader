@@ -7,7 +7,7 @@ from uuid import uuid4
 
 class HistoryDatabase(Database):
     def __init__(self):
-        self.path = Path(appdata_path) / "Bili23 Downloader" / "history.db"
+        self.path = Path(appdata_path) / "Media Agent CLI" / "history.db"
 
         self.max_length = 100
 

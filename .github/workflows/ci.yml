@@ -1,0 +1,19 @@
+name: Test
+
+on:
+  push:
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v5
+      - run: uv sync
+      - run: sh -n scripts/install-global.sh
+      - run: MEDIA_AGENT_APPDATA_DIR="$RUNNER_TEMP/media-agent-state" ./media-agent --help
+      - run: PYTHONPATH=src uv run python -m unittest discover -s tests -v

@@ -1,23 +1,8 @@
-## Unreleased (fork)
-### Added
-- 新增项目级 `bili23-cli` Agent Skill，规范个人授权内容的收藏夹查询、精确选集、下载与本地转写输入准备流程
-- 新增中英文 Agent CLI 文档与 `NOTICE`，说明本 fork 的 Agent 集成范围、上游归属和 GPLv3 约束
-- 新增 macOS/Linux 源码全局注册脚本，可将 `bili23` 和 Codex Skill 以可追踪软链接注册到用户目录
+# Changelog
 
-## 2.11.0 (2026-07-16)
-### 新增
-- 支持使用 Cookie 登录
-- 支持记忆下载列表的筛选设置，无需每次重新设置
+## 0.1.0 - 2026-07-20
 
-### 优化
-- 优化部分提示信息显示效果
-- 提升下载时的界面响应速度
-- 优化嵌入视频封面时的图片质量
-
-### 修复
-- 修复下载个人空间和收藏夹中的视频时，解析列表中的序号格式化结果异常的问题
-- 修复从旧版本升级到 2.10.x 版本后，数据库文件未正确升级的问题
-- 修复部分情况下，下载完成时找不到下载文件的问题
-- 修复查看日志窗口显示异常的问题
-- 修复部分气泡提示重复弹出的问题
-- 修复部分电影解析失败的问题
+- Established Media Agent CLI as a separately named GPLv3 derivative product.
+- Added the media-agent local CLI, source-global registration, and Agent Skill workflow.
+- Replaced inherited product documentation, icons, release configuration, and upstream update endpoint.
+- Added provenance, notice, and independent CI documentation.

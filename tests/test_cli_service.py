@@ -2,7 +2,14 @@
 
 from __future__ import annotations
 
+import os
+from tempfile import TemporaryDirectory
 import unittest
+
+
+# 配置模块在导入时初始化 Qt 配置；测试必须隔离其本地状态，不触碰真实账号目录。
+TEST_APPDATA_DIRECTORY = TemporaryDirectory()
+os.environ.setdefault("MEDIA_AGENT_APPDATA_DIR", TEST_APPDATA_DIRECTORY.name)
 
 from cli.service import (
     Bili23CLIService,

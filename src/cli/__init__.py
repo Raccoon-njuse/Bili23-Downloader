@@ -1,1 +1,1 @@
-"""Bili23 Downloader 的无界面命令行适配层。"""
+"""Media Agent CLI 的无界面命令行适配层。"""

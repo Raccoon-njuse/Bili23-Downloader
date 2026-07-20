@@ -74,9 +74,12 @@ import os
 
 # --------- Logging Configuration ---------
 
-appdata_path = QStandardPaths.writableLocation(QStandardPaths.StandardLocation.AppDataLocation)
+# 与配置模块保持一致，便于在受限环境中把日志和锁文件放入指定的本地状态目录。
+appdata_path = os.environ.get("MEDIA_AGENT_APPDATA_DIR") or QStandardPaths.writableLocation(
+    QStandardPaths.StandardLocation.AppDataLocation
+)
 
-log_path = Path(appdata_path) / "Bili23 Downloader" / "logs" / "app.log"
+log_path = Path(appdata_path) / "Media Agent CLI" / "logs" / "app.log"
 log_path.parent.mkdir(parents = True, exist_ok = True)
 
 class CompactLogFormatter(logging.Formatter):
@@ -150,7 +153,7 @@ import res.resources_rc
 
 INSTANCE_LOCK_NAME = "instance.lock"
 INSTANCE_LOCK_TIMEOUT_MS = 10_000
-INSTANCE_SERVER_NAME = "bili23_downloader_single_instance"
+INSTANCE_SERVER_NAME = "media_agent_cli_single_instance"
 APP_MUTEX_NAME = "B096F0C1-D105-4EF9-86E1-5E87DA884EA4"
 
 logger = logging.getLogger(__name__)
@@ -172,7 +175,7 @@ class Application(QApplication):
             self.app_mutex_handle = self._msw_create_mutex(APP_MUTEX_NAME)
 
     def init_single_instance(self):
-        lock_path = Path(appdata_path) / "Bili23 Downloader" / "locks" / INSTANCE_LOCK_NAME
+        lock_path = Path(appdata_path) / "Media Agent CLI" / "locks" / INSTANCE_LOCK_NAME
 
         lock_path.parent.mkdir(parents = True, exist_ok = True)
 
